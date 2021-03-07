@@ -7,7 +7,7 @@ TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(1000)
-		local timeNow = os.clock()
+		local timeNow = os.time()
 
 		for playerId,data in pairs(playersWorking) do
 			Citizen.Wait(10)
@@ -15,15 +15,18 @@ Citizen.CreateThread(function()
 
 			-- is player still online?
 			if xPlayer then
-				local distance = #(xPlayer.getCoords(true) - data.zoneCoords)
-
+				local player = playerId
+				local ped = GetPlayerPed(player)
+				local playerCoords = GetEntityCoords(ped)
+								
+				local distance = #(playerCoords - data.zoneCoords)
 				-- player still within zone limits?
 				if distance <= data.zoneMaxDistance then
 					-- calculate the elapsed time
-					local timeElapsed = timeNow - data.time
+					local timeElapsed = os.difftime(timeNow, data.time)
 
 					if timeElapsed > data.jobItem[1].time then
-						data.time = os.clock()
+						data.time = os.time()
 
 						for k,v in ipairs(data.jobItem) do
 							local itemQtty, requiredItemQtty = 0, 0
@@ -92,7 +95,7 @@ AddEventHandler('esx_jobs:startWork', function(zoneIndex)
 						jobItem = jobZone.Item,
 						zoneCoords = vector3(jobZone.Pos.x, jobZone.Pos.y, jobZone.Pos.z),
 						zoneMaxDistance = jobZone.Size.x,
-						time = os.clock()
+						time = os.time()
 					}
 				end
 			end
